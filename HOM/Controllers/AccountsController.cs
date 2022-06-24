@@ -1,55 +1,89 @@
 ﻿using HOM.Data;
+using HOM.Data.Context;
 using HOM.Models;
 using HOM.Repository;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace HOM.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class AccountsController : ControllerBase
     {
         private readonly IAccountRepo _accountRepo;
-        private readonly DataContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly HOMContext _context;
 
-        public AccountsController(IAccountRepo accountRepo, DataContext context, UserManager<ApplicationUser> userManager)
+        public AccountsController(IAccountRepo accountRepo, HOMContext context)
         {
             _accountRepo = accountRepo;
             _context = context;
-            _userManager = userManager;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<PagedModel<Account>>> GetAccounts(int pageIndex, int pageSize, int roleId, string? roomId)
+        {
+            if (_context.Accounts == null)
+            {
+                return NotFound();
+            }
+
+            var source = _context.Accounts.AsQueryable();
+
+            if (roleId != 0)
+            {
+                source = source.Where(x => x.RoleId == roleId);
+            }
+
+            if (roomId != null)
+            {
+                source = source.GroupJoin(_context.RoomMemberships.Where(rms => rms.RoomId == roomId),
+                    account => account.Id,
+                    roomMembers => roomMembers.AccountId,
+                    (account, roomMember) => new Account());
+            }
+
+            return await PaginatedList<Account>.CreateAsync(source, pageIndex, pageSize);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Account>> GetAccount(string id)
+        {
+            if (_context.Accounts == null)
+            {
+                return NotFound();
+            }
+            var account = await _context.Accounts.FindAsync(id);
+
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            return account;
         }
 
         [HttpPost("SignUp")]
-        public async Task<IActionResult> SignUp([FromBody] SignUpModel signUpModel)
+        public async Task<IActionResult> SignUp(SignUpModel signUpModel)
         {
             var result = await _accountRepo.SignUpAsync(signUpModel);
 
             if (result.Succeeded)
             {
-                var user = _userManager.FindByNameAsync(signUpModel.Phone).Result;
-                var account = new Accounts()
-                {
-                    Name = signUpModel.Name,
-                    Phone = signUpModel.Phone,
-                    PasswordHash = _userManager.PasswordHasher.HashPassword(user, signUpModel.Password),
-                    Gender = signUpModel.Gender,
-                    RoleId = signUpModel.RoleId,
-                    Avatar = signUpModel.Avatar,
-                    Status = true
-                };
-                _context.Accounts.Add(account);
+                _context.Accounts.Add(new Account(signUpModel));
                 await _context.SaveChangesAsync();
 
-                return Ok(result.Succeeded);
+                return await SignIn(new SignInModel() { Phone = signUpModel.Phone, Password = signUpModel.Password });
             }
 
-            return Unauthorized();
+            var error = result.Errors.FirstOrDefault();
+
+            return ValidationProblem(ExceptionHandle.Handle(new Exception(error == null ? "" : error.Description), signUpModel.GetType(), ModelState));
         }
 
         [HttpPost("SignIn")]
-        public async Task<IActionResult> SignIn([FromBody] SignInModel signInModel)
+        public async Task<IActionResult> SignIn(SignInModel signInModel)
         {
             var token = await _accountRepo.SignInAsync(signInModel);
 
@@ -58,31 +92,9 @@ namespace HOM.Controllers
                 return Unauthorized();
             }
 
-            var accounts = (from account in _context.Accounts
-                            join role in _context.Roles on account.RoleId equals role.Id
-                            where account.Status == true && account.Phone == signInModel.Phone
-                            select new AccountModel()
-                            {
-                                Id = account.Id,
-                                Name = account.Name,
-                                Phone = account.Phone,
-                                Gender = account.Gender,
-                                RoleName = role.Name,
-                                Avatar = account.Avatar
-                            }).ToList();
-            
-            if (accounts.Count == 0)
-            {
-                return Ok(accounts);
-            }
+            var accounts = _context.Accounts.Where(a => a.Phone == signInModel.Phone).FirstOrDefault();
 
-            var result = new
-            {
-                accounts,
-                token
-            };
-
-            return Ok(result);
+            return Ok(new { accounts, token });
         }
     }
 }

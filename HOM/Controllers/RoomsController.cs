@@ -1,88 +1,91 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HOM.Data;
+using HOM.Data.Context;
+using System.ComponentModel.DataAnnotations;
 using HOM.Models;
+using HOM.Repository;
 
 namespace HOM.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class RoomsController : ControllerBase
     {
-        private readonly DataContext _context;
+        private readonly HOMContext _context;
 
-        public RoomsController(DataContext context)
+        public RoomsController(HOMContext context)
         {
             _context = context;
         }
 
-        /*// GET: api/Rooms
+        // GET: api/Rooms
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Rooms>>> GetRooms()
-        {
-          if (_context.Rooms == null)
-          {
-              return NotFound();
-          }
-            return await _context.Rooms.ToListAsync();
-        }*/
-
-        // GET: api/Rooms/5
-        [HttpGet("{hostelId}")]
-        public async Task<ActionResult<IEnumerable<RoomModel>>> GetRooms(int hostelId)
+        public async Task<ActionResult<PagedModel<Room>>> GetRooms(int pageIndex, int pageSize, [Required] string hostelId)
         {
             if (_context.Rooms == null)
             {
                 return NotFound();
             }
 
-            var rooms = (from room in _context.Rooms
-                         join roomtype in _context.RoomTypes on room.TypeId equals roomtype.Id
-                         join image in _context.Images on room.ImageId equals image.Id
-                         where room.Status == true && room.HostelId == hostelId
-                         select new RoomModel()
-                         {
-                             Id = room.Id,
-                             Name = room.Name,
-                             ImageUrl = image.Url,
-                             RoomType = roomtype.Name,
-                             Acreage = room.Acreage,
-                             Price = room.Price
-                         }).ToListAsync();
+            var source = _context.Rooms.Where(r => r.HostelId == hostelId).AsQueryable();
 
-            if (rooms.Result.Count == 0)
+            return await PaginatedList<Room>.CreateAsync(source, pageIndex, pageSize);
+        }
+
+        // GET: api/Rooms/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Room>> GetRoom(string id)
+        {
+            if (_context.Rooms == null)
+            {
+                return NotFound();
+            }
+            var room = await _context.Rooms.FindAsync(id);
+
+            if (room == null)
             {
                 return NotFound();
             }
 
-            return await rooms;
+            return room;
         }
 
-        /*// PUT: api/Rooms/5
+        // PUT: api/Rooms/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutRooms(int id, Rooms rooms)
+        public async Task<IActionResult> PutRoom(string id, RoomModel room)
         {
-            if (id != rooms.Id)
+            if (id != room.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(rooms).State = EntityState.Modified;
+            if (RoomExists(room))
+            {
+                return ValidationProblem(ExceptionHandle.Handle(new Exception("Already exist, can not save changes."), room.GetType(), ModelState));
+            }
+
+            _context.Entry(new Room(room, false)).State = EntityState.Modified;
 
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
-                if (!RoomsExists(id))
+                if (!RoomExists(id))
                 {
                     return NotFound();
                 }
                 else
                 {
-                    throw;
+                    return ValidationProblem(ExceptionHandle.Handle(ex, room.GetType(), ModelState));
                 }
             }
 
@@ -92,41 +95,73 @@ namespace HOM.Controllers
         // POST: api/Rooms
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Rooms>> PostRooms(Rooms rooms)
+        public async Task<ActionResult<Room>> PostRoom(RoomModel room)
         {
-          if (_context.Rooms == null)
-          {
-              return Problem("Entity set 'DataContext.Rooms'  is null.");
-          }
-            _context.Rooms.Add(rooms);
-            await _context.SaveChangesAsync();
+            if (_context.Rooms == null)
+            {
+                return Problem("Entity set 'HOMContext.Rooms'  is null.");
+            }
 
-            return CreatedAtAction("GetRooms", new { id = rooms.Id }, rooms);
+            if (RoomExists(room))
+            {
+                return ValidationProblem(ExceptionHandle.Handle(new Exception("Already exist."), room.GetType(), ModelState));
+            }
+
+            _context.Rooms.Add(new Room(room, true));
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                if (RoomExists(room.Id))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    return ValidationProblem(ExceptionHandle.Handle(ex, room.GetType(), ModelState));
+                }
+            }
+
+            return CreatedAtAction("GetRoom", new { id = room.Id }, room);
         }
 
         // DELETE: api/Rooms/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRooms(int id)
+        public async Task<IActionResult> DeleteRoom(string id)
         {
             if (_context.Rooms == null)
             {
                 return NotFound();
             }
-            var rooms = await _context.Rooms.FindAsync(id);
-            if (rooms == null)
+            var room = await _context.Rooms.FindAsync(id);
+            if (room == null)
             {
                 return NotFound();
             }
 
-            _context.Rooms.Remove(rooms);
+            _context.Rooms.Remove(room);
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }*/
+        }
 
-        private bool RoomsExists(int id)
+        private bool RoomExists(string id) => (_context.Rooms?.Any(e => e.Id == id)).GetValueOrDefault();
+
+        private bool RoomExists(RoomModel room)
         {
-            return (_context.Rooms?.Any(e => e.Id == id)).GetValueOrDefault();
+            bool result = true;
+
+            var id = _context.Rooms.Where(r => r.Name == room.Name && r.HostelId == room.HostelId).Select(r => r.Id).FirstOrDefault();
+
+            if (id == null || id == room.Id)
+            {
+                result = false;
+            }
+
+            return result;
         }
     }
 }

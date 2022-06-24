@@ -3,16 +3,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HOM.Data
 {
-    public class Bills
+    public partial class Bill
     {
         [Key]
-        public int Id { get; set; }
-        public int ServiceId { get; set; }
+        public string Id { get; set; } = null!;
+        [ForeignKey("Services")]
+        public string ServiceId { get; set; } = null!;
         public DateTime Date { get; set; }
         [ForeignKey("Rooms")]
-        public int RoomId { get; set; }
-        [ForeignKey("Accounts")]
-        public int AccountId { get; set; }
+        public string RoomId { get; set; } = null!;
         public double Quantity { get; set; }
         public double Price { get; set; }
         public double Total { get; set; }

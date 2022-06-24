@@ -1,20 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace HOM.Models
+﻿namespace HOM.Models
 {
     public class RoomModel
     {
-        [Required]
-        public int Id { get; set; }
-        [Required]
-        public string Name { get; set; }
-        [Required]
-        public string ImageUrl { get; set; }
-        [Required]
-        public string RoomType { get; set; }
-        [Required]
+        public string Id { get; set; } = null!;
+        public string Name { get; set; } = null!;
+        public string RoomTypeId { get; set; } = null!;
         public double Acreage { get; set; }
-        [Required]
         public double Price { get; set; }
+        public string HostelId { get; set; } = null!;
+        public bool Status { get; set; }
     }
 }

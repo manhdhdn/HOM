@@ -1,4 +1,4 @@
-﻿using HOM.Data;
+﻿using HOM.Data.Context;
 using HOM.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -11,19 +11,16 @@ namespace HOM.Repository
     public class AccountRepo : IAccountRepo
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IConfiguration _configuration;
-        private readonly DataContext _context;
+        private readonly HOMContext _context;
 
         public AccountRepo(UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager,
             SignInManager<ApplicationUser> signInManager,
             IConfiguration configuration,
-            DataContext context)
+            HOMContext context)
         {
             _userManager = userManager;
-            _roleManager = roleManager;
             _signInManager = signInManager;
             _configuration = configuration;
             _context = context;
@@ -33,19 +30,23 @@ namespace HOM.Repository
         {
             var user = new ApplicationUser()
             {
-                Phone = signUpModel.Phone,
+                Name = signUpModel.Phone,
                 UserName = signUpModel.Phone
             };
 
-            var role = _context.Roles.Find(signUpModel.RoleId);
+            var role = await _context.Roles.FindAsync(signUpModel.RoleId);
 
-            if (role == null || role.Name.Equals("Admin"))
+            if (role == null /*|| role.Name.Equals("Admin")*/)
                 return IdentityResult.Failed();
 
-            var roleExit = await _roleManager.RoleExistsAsync(role.Name);
-            if (!roleExit) await _roleManager.CreateAsync(new IdentityRole(role.Name));
-            await _userManager.CreateAsync(user, signUpModel.Password);
-            return await _userManager.AddToRoleAsync(user, role.Name);
+            var result = await _userManager.CreateAsync(user, signUpModel.Password);
+
+            if (result.Succeeded)
+            {
+                result = await _userManager.AddToRoleAsync(user, role.Name);
+            }
+
+            return result;
         }
 
         public async Task<string?> SignInAsync(SignInModel signInModel)
@@ -58,7 +59,6 @@ namespace HOM.Repository
             }
 
             var user = _userManager.FindByNameAsync(signInModel.Phone).Result;
-            string roleName = _userManager.GetRolesAsync(user).Result.First<string>();
 
             var authClaims = new List<Claim>
             {
@@ -66,6 +66,7 @@ namespace HOM.Repository
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
+            var roleName = _userManager.GetRolesAsync(user).Result.FirstOrDefault();
 
             if (roleName != null)
                 authClaims.Add(new Claim(ClaimTypes.Role, roleName));

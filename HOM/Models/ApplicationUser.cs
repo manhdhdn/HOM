@@ -5,7 +5,6 @@ namespace HOM.Models
 {
     public class ApplicationUser : IdentityUser
     {
-        [Phone]
-        public string Phone { get; set; }
+        public string Name { get; set; }
     }
 }
