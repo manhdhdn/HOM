@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HOM.Data;
 using HOM.Data.Context;
@@ -66,7 +61,7 @@ namespace HOM.Controllers
                 return BadRequest();
             }
 
-            if (RoomExists(room))
+            if (RoomExists(room, false))
             {
                 return ValidationProblem(ExceptionHandle.Handle(new Exception("Already exist, can not save changes."), room.GetType(), ModelState));
             }
@@ -95,14 +90,14 @@ namespace HOM.Controllers
         // POST: api/Rooms
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Room>> PostRoom(RoomModel room)
+        public async Task<ActionResult<RoomModel>> PostRoom(RoomModel room)
         {
             if (_context.Rooms == null)
             {
                 return Problem("Entity set 'HOMContext.Rooms'  is null.");
             }
 
-            if (RoomExists(room))
+            if (RoomExists(room, true))
             {
                 return ValidationProblem(ExceptionHandle.Handle(new Exception("Already exist."), room.GetType(), ModelState));
             }
@@ -150,13 +145,13 @@ namespace HOM.Controllers
 
         private bool RoomExists(string id) => (_context.Rooms?.Any(e => e.Id == id)).GetValueOrDefault();
 
-        private bool RoomExists(RoomModel room)
+        private bool RoomExists(RoomModel room, bool method)
         {
             bool result = true;
 
             var id = _context.Rooms.Where(r => r.Name == room.Name && r.HostelId == room.HostelId).Select(r => r.Id).FirstOrDefault();
 
-            if (id == null || id == room.Id)
+            if (id == null || (id == room.Id && !method))
             {
                 result = false;
             }

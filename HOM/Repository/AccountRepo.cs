@@ -30,7 +30,7 @@ namespace HOM.Repository
         {
             var user = new ApplicationUser()
             {
-                Name = signUpModel.Phone,
+                Name = signUpModel.Name,
                 UserName = signUpModel.Phone
             };
 

@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HOM.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class RoomTypesController : ControllerBase
     {
@@ -60,7 +60,7 @@ namespace HOM.Controllers
                 return BadRequest();
             }
 
-            if (RoomTypeExists(roomType))
+            if (RoomTypeExists(roomType, false))
             {
                 return ValidationProblem(ExceptionHandle.Handle(new Exception("Already exist, can not save changes."), roomType.GetType(), ModelState));
             }
@@ -96,11 +96,12 @@ namespace HOM.Controllers
                 return Problem("Entity set 'HOMContext.RoomTypes'  is null.");
             }
 
-            if (RoomTypeExists(roomType))
+            if (RoomTypeExists(roomType, true))
             {
                 return ValidationProblem(ExceptionHandle.Handle(new Exception("Already exist."), roomType.GetType(), ModelState));
             }
 
+            roomType.Id = Guid.NewGuid().ToString();
             _context.RoomTypes.Add(roomType);
 
             try
@@ -144,13 +145,13 @@ namespace HOM.Controllers
 
         private bool RoomTypeExists(string id) => (_context.RoomTypes?.Any(e => e.Id == id)).GetValueOrDefault();
 
-        private bool RoomTypeExists(RoomType roomType)
+        private bool RoomTypeExists(RoomType roomType, bool method)
         {
             bool result = true;
 
             var id = _context.RoomTypes.Where(r => r.Name == roomType.Name && r.HostelId == roomType.HostelId).Select(r => r.Id).FirstOrDefault();
 
-            if (id == null || id == roomType.Id)
+            if (id == null || (id == roomType.Id && !method))
             {
                 result = false;
             }

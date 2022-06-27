@@ -4,7 +4,7 @@ using HOM.Models;
 using HOM.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace HOM.Controllers
 {
@@ -22,23 +22,19 @@ namespace HOM.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<PagedModel<Account>>> GetAccounts(int pageIndex, int pageSize, int roleId, string? roomId)
+        [Authorize(Roles = "Admin, Landlords")]
+        public async Task<ActionResult<PagedModel<Account>>> GetAccounts(int pageIndex, int pageSize, [Required] int roleId, string? roomId)
         {
-            if (_context.Accounts == null)
+            if (_context.Accounts == null || roleId == 1)
             {
                 return NotFound();
             }
 
-            var source = _context.Accounts.AsQueryable();
-
-            if (roleId != 0)
-            {
-                source = source.Where(x => x.RoleId == roleId);
-            }
+            var source = _context.Accounts.Where(a => a.RoleId == roleId);
 
             if (roomId != null)
             {
-                source = source.GroupJoin(_context.RoomMemberships.Where(rms => rms.RoomId == roomId),
+                source = source.GroupJoin(_context.RoomMemberships.Where(r => r.RoomId == roomId),
                     account => account.Id,
                     roomMembers => roomMembers.AccountId,
                     (account, roomMember) => new Account());

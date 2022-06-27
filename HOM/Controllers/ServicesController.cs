@@ -3,10 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using HOM.Data;
 using HOM.Data.Context;
 using System.ComponentModel.DataAnnotations;
+using HOM.Repository;
 
 namespace HOM.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class ServicesController : ControllerBase
     {
@@ -59,13 +60,18 @@ namespace HOM.Controllers
                 return BadRequest();
             }
 
+            if (ServiceExists(service, false))
+            {
+                return ValidationProblem(ExceptionHandle.Handle(new Exception("Already exist, can not save changes."), service.GetType(), ModelState));
+            }
+
             _context.Entry(service).State = EntityState.Modified;
 
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException ex)
             {
                 if (!ServiceExists(id))
                 {
@@ -73,7 +79,7 @@ namespace HOM.Controllers
                 }
                 else
                 {
-                    throw;
+                    return ValidationProblem(ExceptionHandle.Handle(ex, service.GetType(), ModelState));
                 }
             }
 
@@ -89,12 +95,21 @@ namespace HOM.Controllers
             {
                 return Problem("Entity set 'HOMContext.Services'  is null.");
             }
+
+            if (ServiceExists(service, true))
+            {
+                return ValidationProblem(ExceptionHandle.Handle(new Exception("Already exist."), service.GetType(), ModelState));
+            }
+
+            service.Id = Guid.NewGuid().ToString();
             _context.Services.Add(service);
+
+
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException ex)
             {
                 if (ServiceExists(service.Id))
                 {
@@ -102,7 +117,7 @@ namespace HOM.Controllers
                 }
                 else
                 {
-                    throw;
+                    return ValidationProblem(ExceptionHandle.Handle(ex, service.GetType(), ModelState));
                 }
             }
 
@@ -129,9 +144,20 @@ namespace HOM.Controllers
             return NoContent();
         }
 
-        private bool ServiceExists(string id)
+        private bool ServiceExists(string id) => (_context.Services?.Any(e => e.Id == id)).GetValueOrDefault();
+
+        private bool ServiceExists(Service service, bool method)
         {
-            return (_context.Services?.Any(e => e.Id == id)).GetValueOrDefault();
+            bool result = true;
+
+            var id = _context.Services.Where(s => s.Name == service.Name && s.HostelId == service.HostelId).Select(s => s.Id).FirstOrDefault();
+
+            if (id == null || (id == service.Id && !method))
+            {
+                result = false;
+            }
+
+            return result;
         }
     }
 }

@@ -14,8 +14,6 @@ namespace HOM.Data
             Id = method ? Guid.NewGuid().ToString() : room.Id;
             Name = room.Name;
             RoomTypeId = room.RoomTypeId;
-            Acreage = room.Acreage;
-            Price = room.Price;
             HostelId = room.HostelId;
             Status = room.Status;
         }
@@ -25,8 +23,6 @@ namespace HOM.Data
         public string Name { get; set; } = null!;
         [ForeignKey("RoomTypes")]
         public string RoomTypeId { get; set; } = null!;
-        public double Acreage { get; set; }
-        public double Price { get; set; }
         [ForeignKey("Hostels")]
         public string HostelId { get; set; } = null!;
         public bool Status { get; set; }

@@ -8,7 +8,7 @@ using HOM.Models;
 
 namespace HOM.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class ImagesController : ControllerBase
     {
@@ -21,7 +21,7 @@ namespace HOM.Controllers
 
         // GET: api/Images
         [HttpGet]
-        public async Task<ActionResult<PagedModel<Image>>> GetImages(int pageIndex, int pageSize,[Required] string hostelId, string? roomId)
+        public async Task<ActionResult<PagedModel<Image>>> GetImages(int pageIndex, int pageSize, [Required] string hostelId, string? roomId)
         {
             if (_context.Images == null)
             {
@@ -66,7 +66,7 @@ namespace HOM.Controllers
                 return BadRequest();
             }
 
-            if (ImageExists(image))
+            if (ImageExists(image, false))
             {
                 return ValidationProblem(ExceptionHandle.Handle(new Exception("Already exist, can not save changes."), image.GetType(), ModelState));
             }
@@ -102,11 +102,12 @@ namespace HOM.Controllers
                 return Problem("Entity set 'HOMContext.Images'  is null.");
             }
 
-            if (ImageExists(image))
+            if (ImageExists(image, true))
             {
                 return ValidationProblem(ExceptionHandle.Handle(new Exception("Already exist."), image.GetType(), ModelState));
             }
 
+            image.Id = Guid.NewGuid().ToString();
             _context.Images.Add(image);
 
             try
@@ -150,13 +151,13 @@ namespace HOM.Controllers
 
         private bool ImageExists(string id) => (_context.Images?.Any(e => e.Id == id)).GetValueOrDefault();
 
-        private bool ImageExists(Image image)
+        private bool ImageExists(Image image, bool method)
         {
             bool result = true;
 
             var id = _context.Images.Where(i => i.Url == image.Url && i.HostelId == image.HostelId && i.RoomId == image.RoomId).Select(i => i.Id).FirstOrDefault();
 
-            if (id == null || id == image.Id)
+            if (id == null || (id == image.Id && !method))
             {
                 result = false;
             }

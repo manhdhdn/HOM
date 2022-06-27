@@ -65,7 +65,7 @@ namespace HOM.Controllers
                 return BadRequest();
             }
 
-            if (HostelExists(hostel))
+            if (HostelExists(hostel, false))
             {
                 return ValidationProblem(ExceptionHandle.Handle(new Exception("Already exist, can not save changes."), hostel.GetType(), ModelState));
             }
@@ -94,14 +94,14 @@ namespace HOM.Controllers
         // POST: api/Hostels
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Hostel>> PostHostel(HostelModel hostel)
+        public async Task<ActionResult<HostelModel>> PostHostel(HostelModel hostel)
         {
             if (_context.Hostels == null)
             {
                 return Problem("Entity set 'HOMContext.Hostels'  is null.");
             }
 
-            if (HostelExists(hostel))
+            if (HostelExists(hostel, true))
             {
                 return ValidationProblem(ExceptionHandle.Handle(new Exception("Already exist."), hostel.GetType(), ModelState));
             }
@@ -149,13 +149,13 @@ namespace HOM.Controllers
 
         private bool HostelExists(string id) => (_context.Hostels?.Any(e => e.Id == id)).GetValueOrDefault();
 
-        private bool HostelExists(HostelModel hostel)
+        private bool HostelExists(HostelModel hostel, bool method)
         {
             bool result = true;
 
             var id = _context.Hostels.Where(h => h.Name == hostel.Name && h.Address == hostel.Address && h.AccountId == hostel.AccountId).Select(h => h.Id).FirstOrDefault();
 
-            if (id == null || id == hostel.Id)
+            if (id == null || (id == hostel.Id && !method))
             {
                 result = false;
             }

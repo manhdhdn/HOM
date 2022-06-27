@@ -8,7 +8,10 @@ namespace HOM.Data
         [Key]
         public string Id { get; set; } = null!;
         public string Name { get; set; } = null!;
-        public string Description { get; set; } = null!;
+        public double Acreage { get; set; }
+        public double Price { get; set; }
+        public bool Furniture { get; set; }
+        public string? Description { get; set; }
         [ForeignKey("Hostels")]
         public string HostelId { get; set; } = null!;
 
