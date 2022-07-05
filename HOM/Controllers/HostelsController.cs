@@ -27,7 +27,9 @@ namespace HOM.Controllers
                 return NotFound();
             }
 
-            var source = _context.Hostels.Include(h => h.Images).Include(h => h.Services).Include(h => h.RoomTypes).AsQueryable();
+            var source = _context.Hostels.Include(h => h.Images).Include(h => h.Services).Include(h => h.RoomTypes).Include(h => h.Account)
+                .OrderBy(h => h.Name)
+                .AsQueryable();
 
             if (accountId != null)
             {

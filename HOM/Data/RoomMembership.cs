@@ -5,11 +5,11 @@ namespace HOM.Data
 {
     public partial class RoomMembership
     {
-        [Key]
+        [Required, Key]
         public string Id { get; set; } = null!;
-        [ForeignKey("Accounts")]
+        [Required, ForeignKey("Accounts")]
         public string AccountId { get; set; } = null!;
-        [ForeignKey("Rooms")]
+        [Required, ForeignKey("Rooms")]
         public string RoomId { get; set; } = null!;
     }
 }

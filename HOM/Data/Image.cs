@@ -5,10 +5,11 @@ namespace HOM.Data
 {
     public partial class Image
     {
-        [Key]
+        [Required, Key]
         public string Id { get; set; } = null!;
+        [Required]
         public string Url { get; set; } = null!;
-        [ForeignKey("Hostels")]
+        [Required, ForeignKey("Hostels")]
         public string HostelId { get; set; } = null!;
         [ForeignKey("Rooms")]
         public string? RoomId { get; set; }

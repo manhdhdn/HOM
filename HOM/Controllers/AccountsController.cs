@@ -22,8 +22,8 @@ namespace HOM.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Landlords")]
-        public async Task<ActionResult<PagedModel<Account>>> GetAccounts(int pageIndex, int pageSize, [Required] int roleId, string? roomId)
+        [Authorize(Roles = "Admin, Owner")]
+        public async Task<ActionResult<PagedModel<Account>>> GetAccounts(int pageIndex, int pageSize, [Required] int roleId, string? hostelId, string? roomId)
         {
             if (_context.Accounts == null || roleId == 1)
             {
@@ -32,9 +32,21 @@ namespace HOM.Controllers
 
             var source = _context.Accounts.Where(a => a.RoleId == roleId);
 
+            if (hostelId != null)
+            {
+                source = source.Join(_context.RoomMemberships
+                    .Join(_context.Rooms.Where(r => r.HostelId == hostelId),
+                    roomMember => roomMember.RoomId, 
+                    room => room.Id,
+                    (roomMember, room) => new RoomMembership()),
+                    account => account.Id,
+                    roomMembers => roomMembers.AccountId,
+                    (account, roomMember) => new Account());
+            }
+
             if (roomId != null)
             {
-                source = source.GroupJoin(_context.RoomMemberships.Where(r => r.RoomId == roomId),
+                source = source.Join(_context.RoomMemberships.Where(r => r.RoomId == roomId),
                     account => account.Id,
                     roomMembers => roomMembers.AccountId,
                     (account, roomMember) => new Account());
@@ -88,7 +100,7 @@ namespace HOM.Controllers
                 return Unauthorized();
             }
 
-            var accounts = _context.Accounts.Where(a => a.Phone == signInModel.Phone).FirstOrDefault();
+            var accounts = _context.Accounts.FirstOrDefault(a => a.Phone == signInModel.Phone);
 
             return Ok(new { accounts, token });
         }

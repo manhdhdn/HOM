@@ -28,7 +28,8 @@ namespace HOM.Controllers
                 return NotFound();
             }
 
-            var source = _context.Bills.GroupJoin(_context.Rooms.Where(r => r.HostelId == hotelId),
+            var source = _context.Bills.Join(_context.Rooms
+                .Where(r => r.HostelId == hotelId),
                 bill => bill.RoomId,
                 room => room.Id,
                 (bill, room) => new Bill());

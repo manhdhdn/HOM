@@ -4,8 +4,9 @@ namespace HOM.Models
 {
     public class SignInModel
     {
-        [Phone]
+        [Required, Phone]
         public string Phone { get; set; }
+        [Required]
         public string Password { get; set; }
     }
 }

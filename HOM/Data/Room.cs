@@ -18,13 +18,15 @@ namespace HOM.Data
             Status = room.Status;
         }
 
-        [Key]
+        [Required, Key]
         public string Id { get; set; } = null!;
+        [Required]
         public string Name { get; set; } = null!;
-        [ForeignKey("RoomTypes")]
+        [Required, ForeignKey("RoomTypes")]
         public string RoomTypeId { get; set; } = null!;
-        [ForeignKey("Hostels")]
+        [Required, ForeignKey("Hostels")]
         public string HostelId { get; set; } = null!;
+        [Required]
         public bool Status { get; set; }
 
         //public virtual ICollection<Bill> Bills { get; set; }

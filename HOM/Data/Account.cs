@@ -21,17 +21,19 @@ namespace HOM.Data
             Status = true;
         }
 
-        [Key]
+        [Required, Key]
         public string Id { get; set; } = null!;
+        [Required]
         public string Name { get; set; } = null!;
-        [Phone]
+        [Required, Phone]
         public string Phone { get; set; } = null!;
-        [RegularExpression(@"^(Male|Female)$")]
+        [Required, RegularExpression(@"^(Male|Female)$")]
         public string Gender { get; set; } = null!;
-        [ForeignKey("Roles")]
+        [Required, ForeignKey("Roles")]
         public int RoleId { get; set; }
         [Url]
         public string? Avatar { get; set; }
+        [Required]
         public bool Status { get; set; }
 
         //public virtual ICollection<Booking> Bookings { get; set; }

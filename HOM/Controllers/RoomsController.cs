@@ -21,14 +21,29 @@ namespace HOM.Controllers
 
         // GET: api/Rooms
         [HttpGet]
-        public async Task<ActionResult<PagedModel<Room>>> GetRooms(int pageIndex, int pageSize, [Required] string hostelId)
+        public async Task<ActionResult<PagedModel<Room>>> GetRooms(int pageIndex, int pageSize, string? hostelId, string? accountId)
         {
             if (_context.Rooms == null)
             {
                 return NotFound();
             }
 
-            var source = _context.Rooms.Where(r => r.HostelId == hostelId).AsQueryable();
+            var source = _context.Rooms
+                .OrderBy(r => r.Name)
+                .AsQueryable();
+
+            if (hostelId != null)
+            {
+                source = source.Where(s => s.HostelId == hostelId);
+            }
+
+            if (accountId != null)
+            {
+                source = source.Join(_context.Hostels.Where(h => h.AccountId == accountId),
+                    room => room.HostelId,
+                    hostel => hostel.Id,
+                    (room, hostel) => new Room());
+            }
 
             return await PaginatedList<Room>.CreateAsync(source, pageIndex, pageSize);
         }

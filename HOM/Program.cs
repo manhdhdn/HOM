@@ -23,7 +23,7 @@ builder.Services.AddSwaggerGen(option =>
     {
         Name = "Authorization",
         Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
+        Scheme = "bearer",
         BearerFormat = "JWT"
     });
     option.OperationFilter<AddResponseHeadersFilter>();
@@ -68,8 +68,11 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 
 app.UseSwagger();
-app.UseSwaggerUI();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwaggerUI();
+}
 
 app.UseHttpsRedirection();
 

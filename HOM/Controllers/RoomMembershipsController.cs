@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using HOM.Data;
 using HOM.Data.Context;
 using HOM.Repository;
+using System.ComponentModel.DataAnnotations;
 
 namespace HOM.Controllers
 {
@@ -19,7 +20,7 @@ namespace HOM.Controllers
 
         // GET: api/RoomMemberships
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<RoomMembership>>> GetRoomMemberships(string roomId)
+        public async Task<ActionResult<IEnumerable<RoomMembership>>> GetRoomMemberships([Required] string roomId)
         {
             if (_context.RoomMemberships == null)
             {

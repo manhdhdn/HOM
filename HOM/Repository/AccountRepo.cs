@@ -31,7 +31,8 @@ namespace HOM.Repository
             var user = new ApplicationUser()
             {
                 Name = signUpModel.Name,
-                UserName = signUpModel.Phone
+                UserName = signUpModel.Phone,
+                PhoneNumber = signUpModel.Phone
             };
 
             var role = await _context.Roles.FindAsync(signUpModel.RoleId);
