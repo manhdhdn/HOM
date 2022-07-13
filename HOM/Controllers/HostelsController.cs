@@ -4,6 +4,7 @@ using HOM.Data;
 using HOM.Data.Context;
 using HOM.Repository;
 using HOM.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HOM.Controllers
 {
@@ -27,7 +28,7 @@ namespace HOM.Controllers
                 return NotFound();
             }
 
-            var source = _context.Hostels.Include(h => h.Images).Include(h => h.Services).Include(h => h.RoomTypes).Include(h => h.Account)
+            var source = _context.Hostels.Include(h => h.Images).Include(h => h.Services).Include(h => h.RoomTypes.OrderBy(rt => rt.Price)).Include(h => h.Account)
                 .OrderBy(h => h.Name)
                 .AsQueryable();
 
@@ -60,6 +61,7 @@ namespace HOM.Controllers
         // PUT: api/Hostels/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> PutHostel(string id, HostelModel hostel)
         {
             if (id != hostel.Id)
@@ -96,6 +98,7 @@ namespace HOM.Controllers
         // POST: api/Hostels
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = "Owner")]
         public async Task<ActionResult<HostelModel>> PostHostel(HostelModel hostel)
         {
             if (_context.Hostels == null)
@@ -131,6 +134,7 @@ namespace HOM.Controllers
 
         // DELETE: api/Hostels/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> DeleteHostel(string id)
         {
             if (_context.Hostels == null)

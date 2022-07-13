@@ -5,6 +5,7 @@ using HOM.Data.Context;
 using System.ComponentModel.DataAnnotations;
 using HOM.Models;
 using HOM.Repository;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HOM.Controllers
 {
@@ -28,7 +29,7 @@ namespace HOM.Controllers
                 return NotFound();
             }
 
-            var source = _context.Rooms
+            var source = _context.Rooms.Include(r => r.RoomType)
                 .OrderBy(r => r.Name)
                 .AsQueryable();
 
@@ -69,6 +70,7 @@ namespace HOM.Controllers
         // PUT: api/Rooms/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> PutRoom(string id, RoomModel room)
         {
             if (id != room.Id)
@@ -105,6 +107,7 @@ namespace HOM.Controllers
         // POST: api/Rooms
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = "Owner")]
         public async Task<ActionResult<RoomModel>> PostRoom(RoomModel room)
         {
             if (_context.Rooms == null)
@@ -140,6 +143,7 @@ namespace HOM.Controllers
 
         // DELETE: api/Rooms/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> DeleteRoom(string id)
         {
             if (_context.Rooms == null)

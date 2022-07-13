@@ -5,6 +5,7 @@ using HOM.Data.Context;
 using System.ComponentModel.DataAnnotations;
 using HOM.Models;
 using HOM.Repository;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HOM.Controllers
 {
@@ -21,6 +22,7 @@ namespace HOM.Controllers
 
         // GET: api/Bookings
         [HttpGet]
+        [Authorize(Roles = "Owner, User")]
         public async Task<ActionResult<PagedModel<Booking>>> GetBookings(int pageIndex, int pageSize, [Required] string hostelId)
         {
             if (_context.Bookings == null)
@@ -39,6 +41,7 @@ namespace HOM.Controllers
 
         // GET: api/Bookings/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "Owner, User")]
         public async Task<ActionResult<Booking>> GetBooking(string id)
         {
             if (_context.Bookings == null)
@@ -58,6 +61,7 @@ namespace HOM.Controllers
         // PUT: api/Bookings/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "Owner, User")]
         public async Task<IActionResult> PutBooking(string id, Booking booking)
         {
             if (id != booking.Id)
@@ -94,6 +98,7 @@ namespace HOM.Controllers
         // POST: api/Bookings
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = "User")]
         public async Task<ActionResult<Booking>> PostBooking(Booking booking)
         {
             if (_context.Bookings == null)
@@ -130,6 +135,7 @@ namespace HOM.Controllers
 
         // DELETE: api/Bookings/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Owner, User")]
         public async Task<IActionResult> DeleteBooking(string id)
         {
             if (_context.Bookings == null)

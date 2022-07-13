@@ -26,7 +26,7 @@ builder.Services.AddSwaggerGen(option =>
         Scheme = "bearer",
         BearerFormat = "JWT"
     });
-    option.OperationFilter<AddResponseHeadersFilter>();
+    option.OperationFilter<AppendAuthorizeToSummaryOperationFilter>();
     option.OperationFilter<AuthorizationOperationFilter>();
 });
 
@@ -73,6 +73,8 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwaggerUI();
 }
+
+app.UseCors();
 
 app.UseHttpsRedirection();
 

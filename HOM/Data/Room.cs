@@ -1,6 +1,7 @@
 ﻿using HOM.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace HOM.Data
 {
@@ -9,6 +10,7 @@ namespace HOM.Data
         public Room()
         {
         }
+
         public Room(RoomModel room, bool method)
         {
             Id = method ? Guid.NewGuid().ToString() : room.Id;
@@ -23,12 +25,14 @@ namespace HOM.Data
         [Required]
         public string Name { get; set; } = null!;
         [Required, ForeignKey("RoomTypes")]
+        [JsonIgnore]
         public string RoomTypeId { get; set; } = null!;
         [Required, ForeignKey("Hostels")]
         public string HostelId { get; set; } = null!;
         [Required]
         public bool Status { get; set; }
 
+        public virtual RoomType RoomType { get; set; }
         //public virtual ICollection<Bill> Bills { get; set; }
         //public virtual ICollection<Booking> Bookings { get; set; }
         public virtual ICollection<Image> Images { get; set; }

@@ -5,6 +5,7 @@ using HOM.Data.Context;
 using HOM.Models;
 using HOM.Repository;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HOM.Controllers
 {
@@ -21,6 +22,7 @@ namespace HOM.Controllers
 
         // GET: api/Bills
         [HttpGet]
+        [Authorize(Roles = "Owner, User")]
         public async Task<ActionResult<PagedModel<Bill>>> GetBills(int pageIndex, int pageSize, [Required] string hotelId, string? roomId)
         {
             if (_context.Bills == null)
@@ -44,6 +46,7 @@ namespace HOM.Controllers
 
         // GET: api/Bills/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "Owner, User")]
         public async Task<ActionResult<Bill>> GetBill(string id)
         {
             if (_context.Bills == null)
@@ -63,6 +66,7 @@ namespace HOM.Controllers
         // PUT: api/Bills/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> PutBill(string id, Bill bill)
         {
             if (id != bill.Id)
@@ -99,6 +103,7 @@ namespace HOM.Controllers
         // POST: api/Bills
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = "Owner")]
         public async Task<ActionResult<Bill>> PostBill(Bill bill)
         {
             if (_context.Bills == null)
@@ -135,6 +140,7 @@ namespace HOM.Controllers
 
         // DELETE: api/Bills/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> DeleteBill(string id)
         {
             if (_context.Bills == null)

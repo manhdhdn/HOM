@@ -4,6 +4,7 @@ using HOM.Data;
 using HOM.Data.Context;
 using System.ComponentModel.DataAnnotations;
 using HOM.Repository;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HOM.Controllers
 {
@@ -53,6 +54,7 @@ namespace HOM.Controllers
         // PUT: api/Services/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> PutService(string id, Service service)
         {
             if (id != service.Id)
@@ -89,6 +91,7 @@ namespace HOM.Controllers
         // POST: api/Services
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = "Owner")]
         public async Task<ActionResult<Service>> PostService(Service service)
         {
             if (_context.Services == null)
@@ -126,6 +129,7 @@ namespace HOM.Controllers
 
         // DELETE: api/Services/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> DeleteService(string id)
         {
             if (_context.Services == null)

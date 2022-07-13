@@ -4,6 +4,7 @@ using HOM.Data;
 using HOM.Data.Context;
 using HOM.Repository;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HOM.Controllers
 {
@@ -27,7 +28,7 @@ namespace HOM.Controllers
                 return NotFound();
             }
 
-            var source = _context.RoomTypes.Where(rt => rt.HostelId == hostelId);
+            var source = _context.RoomTypes.Where(rt => rt.HostelId == hostelId).OrderBy(rt => rt.Price);
 
             return await source.ToListAsync();
         }
@@ -53,6 +54,7 @@ namespace HOM.Controllers
         // PUT: api/RoomTypes/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> PutRoomType(string id, RoomType roomType)
         {
             if (id != roomType.Id)
@@ -89,6 +91,7 @@ namespace HOM.Controllers
         // POST: api/RoomTypes
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = "Owner")]
         public async Task<ActionResult<RoomType>> PostRoomType(RoomType roomType)
         {
             if (_context.RoomTypes == null)
@@ -125,6 +128,7 @@ namespace HOM.Controllers
 
         // DELETE: api/RoomTypes/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> DeleteRoomType(string id)
         {
             if (_context.RoomTypes == null)

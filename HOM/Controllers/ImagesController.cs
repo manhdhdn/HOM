@@ -5,6 +5,7 @@ using HOM.Data.Context;
 using HOM.Repository;
 using System.ComponentModel.DataAnnotations;
 using HOM.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HOM.Controllers
 {
@@ -59,6 +60,7 @@ namespace HOM.Controllers
         // PUT: api/Images/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> PutImage(string id, Image image)
         {
             if (id != image.Id)
@@ -95,6 +97,7 @@ namespace HOM.Controllers
         // POST: api/Images
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = "Owner")]
         public async Task<ActionResult<Image>> PostImage(Image image)
         {
             if (_context.Images == null)
@@ -131,6 +134,7 @@ namespace HOM.Controllers
 
         // DELETE: api/Images/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Owner")]
         public async Task<IActionResult> DeleteImage(string id)
         {
             if (_context.Images == null)

@@ -56,6 +56,7 @@ namespace HOM.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin, Owner")]
         public async Task<ActionResult<Account>> GetAccount(string id)
         {
             if (_context.Accounts == null)

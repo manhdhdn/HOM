@@ -4,11 +4,13 @@ using HOM.Data;
 using HOM.Data.Context;
 using HOM.Repository;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HOM.Controllers
 {
     [Route("[controller]")]
     [ApiController]
+    [Authorize(Roles = "Owner")]
     public class RoomMembershipsController : ControllerBase
     {
         private readonly HOMContext _context;

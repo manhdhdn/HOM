@@ -16,9 +16,6 @@ namespace HOM.Models
         public string? Avatar { get; set; }
         [Required]
         [RegularExpression(@"^.*(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).*$", ErrorMessage = "Password include Lowercase, Uppercase, Number and Symbol.")]
-        [Compare("ComfirmPassword")]
         public string Password { get; set; }
-        [Required]
-        public string ComfirmPassword { get; set; }
     }
 }
